@@ -1,0 +1,907 @@
+@font-face {
+  font-family: "SpaceMono";
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/SpaceMono-Regular.ttf);
+}
+
+:root {
+  --panel-w: 350px;
+  --bg: #f6f6f6;
+  --ink: #000000;
+  --muted: #6c6f75;
+  --line: #e6e6e6;
+  --accent: #000000;
+  --accent-ink: #fff;
+  --radius: 0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: #fff;
+  font: 10.75px/1.75 "SpaceMono", monospace;
+  letter-spacing: 0.35px;
+  display: grid;
+  /* grid-template-columns: var(--panel-w) 1fr; */
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+
+/* Collapsible controls */
+#controls.collapsed {
+  display: none;
+}
+
+.range-control + div {
+  cursor: ew-resize;
+  padding: 4px 8px; /* invisible larger hitbox */
+  margin-top: -4px; /* keep position consistent */
+  background: transparent; /* doesn’t cover slider */
+}
+
+.layer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.panel {
+  z-index: 999;
+  height: 100vh;
+  overflow-y: auto; /* keep vertical scroll */
+  overflow-x: auto; /* allow horizontal scroll if needed */
+  scrollbar-gutter: stable; /* no layout jump when scrollbar appears */
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: fixed;
+  isolation: isolate;
+  top: 0;
+}
+
+.layer-list {
+  width: var(--panel-w);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.layer-card {
+  border: 1px dotted var(--line);
+  cursor: move;
+  padding: 3px 6px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background-color: rgba(255, 255, 255);
+  /* DON'T add position: relative or transform */
+  /* These create stacking contexts that trap children */
+}
+
+.layer-card:hover {
+  background: #e6e6e6;
+}
+
+.layer-title {
+  font-weight: 700;
+}
+
+.layer-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.layer-card.dragging {
+  opacity: 0.5;
+}
+
+.layer-card.drag-over {
+  border-top: 2px solid var(--accent);
+}
+
+.layer-card.active {
+  background: #000;
+  color: #fff;
+}
+
+.btn {
+  border: 0.5px solid var(--line);
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 3px 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn:hover {
+  background: #ffffff;
+  border: 1px dotted var(--accent);
+  color: #000;
+}
+
+.btn.icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.block {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px dotted var(--line); /* just a line underneath */
+  padding: 5px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.block-title {
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* === Compact textarea + row alignment fixes === */
+.row textarea {
+  border: none !important;
+  outline: none !important;
+  background: none !important;
+  /* background: #fff; */
+  font: inherit;
+  width: 100%;
+  min-height: 1.2em; /* start as single line */
+  line-height: 1.2;
+  padding: 0;
+  margin: 0;
+  resize: none;
+  overflow: hidden; /* grows only when needed */
+  caret-color: black;
+  box-sizing: border-box;
+}
+
+.row textarea::placeholder {
+  color: #888;
+  opacity: 1;
+}
+
+/* Remove any vertical gaps between rows */
+.layer-controls .row {
+  margin-bottom: 0;
+}
+
+/* --- Disabled row styling --- */
+.row.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.row.disabled label,
+.row.disabled span,
+.row.disabled .color-swatch {
+  color: #777 !important;
+  opacity: 0.4 !important;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 150px 1fr; /* left = label, right = control */
+  align-items: center !important;
+  align-content: center;
+  gap: 10px;
+}
+
+.row > div:first-child {
+  text-align: left; /* label stays left-aligned */
+}
+
+.row input[type="range"] {
+  align-self: center;
+  width: 100%; /* sliders stretch across their column */
+}
+
+.row input[type="checkbox"] {
+  justify-self: start; /* checkboxes stay left-aligned in their column */
+}
+
+/* === Blink placeholder again when hovered and not focused === */
+.row textarea:hover:not(:focus):placeholder-shown {
+  animation: blink 0.8s step-start infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: #fff;
+  font: inherit;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+input[type="color"] {
+  width: 40px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0;
+}
+
+.panel-footer {
+  position: sticky;
+  bottom: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1;
+}
+
+input:disabled,
+select:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* RIGHT CANVAS AREA */
+.stage {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  position: relative; /* for absolute positioning children */
+  overflow: hidden; /* contain zoom content */
+  flex: 1;
+  display: flex;
+  z-index: 0;
+}
+
+/* #canvasContainer {
+  position: relative;
+  z-index: 1;
+  display: inline-block; 
+  line-height: 0;
+} */
+
+#canvasContainer {
+  position: relative;
+  z-index: 1;
+  transform-origin: center center;
+  will-change: transform;
+
+  /* NEW: Force GPU compositing for smoother transforms */
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* NEW: Ensure subpixel rendering alignment */
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure the canvas itself doesn't interfere */
+#canvasContainer canvas {
+  display: block;
+  image-rendering: -webkit-optimize-contrast; /* Safari-specific sharpness */
+  image-rendering: crisp-edges; /* Standard */
+}
+
+.canvas-size-controls {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  z-index: 100;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas-size-controls label {
+  padding: 0.2rem 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9em;
+}
+
+.canvas-size-controls input[type="number"] {
+  width: 70px;
+  padding: 0.1rem;
+  border: 1px solid var(--line);
+  font: inherit;
+  outline: none; /* Remove blue outline */
+  /* Remove spinner arrows */
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Remove spinner arrows in WebKit browsers (Chrome, Safari, Edge) */
+.canvas-size-controls input[type="number"]::-webkit-inner-spin-button,
+.canvas-size-controls input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove blue focus outline */
+.canvas-size-controls input[type="number"]:focus {
+  outline: none;
+  border-color: var(--line); /* Keep the same border color on focus */
+}
+
+/* Canvas container with zoom support */
+.canvas-container {
+  position: relative;
+  transform-origin: center center;
+  will-change: transform; /* Hint to browser to prepare for transform changes */
+}
+
+/* CANVAS CONTROLS */
+.canvas-controls {
+  position: fixed;
+  bottom: 5px;
+  right: 5px;
+  display: flex;
+  flex-direction: column; /* Stack vertically */
+  gap: 10px; /* Space between pan and zoom */
+  align-items: flex-end; /* Align to right */
+  z-index: 100;
+}
+
+/* Warning message displayed below controls */
+.canvas-size-controls::after {
+  content: attr(data-warning);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  color: #ff0000;
+  font-size: 9px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.canvas-size-controls.show-warning::after {
+  opacity: 1;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.zoom-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+
+.zoom-btn:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.zoom-level {
+  font-size: 10px;
+  min-width: 45px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Pan controls (cross/cube formation) */
+.pan-controls {
+  display: none; /* Hidden by default */
+  grid-template-columns: repeat(3, 28px);
+  grid-template-rows: repeat(3, 28px);
+  gap: 0.5rem;
+}
+
+.pan-controls.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.pan-row {
+  display: flex;
+  gap: 4rem;
+}
+
+.pan-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+
+.pan-btn:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.pan-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Custom Range Slider Styling */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+  margin: 5px 0;
+}
+
+/* Track (WebKit) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    black 0px,
+    black 2px,
+    transparent 3px,
+    transparent 4px
+  );
+  border-radius: 1px;
+}
+
+/* Track (Firefox) */
+input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    black 0px,
+    black 2px,
+    transparent 3px,
+    transparent 4px
+  );
+  border-radius: 1px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: transparent; /* already set, but ensure it's truly transparent */
+  cursor: pointer;
+  margin-top: -9px; /* centers hitbox */
+  width: 0; /* remove any default size */
+  height: 0; /* remove any default size */
+  border: none; /* ensure no border */
+}
+
+/* Thumb (Firefox) */
+input[type="range"]::-moz-range-thumb {
+  background: transparent; /* already set */
+  border: none; /* already set */
+  cursor: pointer;
+  width: 0; /* remove any default size */
+  height: 0; /* remove any default size */
+}
+
+/* Editable number styling */
+[contenteditable="true"]:focus {
+  outline: none;
+}
+
+.number-span {
+  cursor: text; /* I-beam cursor */
+  white-space: nowrap;
+}
+
+.number-span.hovering {
+  animation: blink 0.8s step-start infinite;
+}
+
+.number-span.blinking {
+  animation: blink 0.8s step-start infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* .range-control + div {
+  cursor: ew-resize;
+} */
+
+.range-control + div {
+  cursor: ew-resize;
+  padding: 4px 8px; /* invisible larger hitbox */
+  margin-top: -4px; /* keep position consistent */
+  background: transparent; /* ← ALREADY SET, but ensure no override */
+}
+
+.layer-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 3px;
+}
+
+.layer-actions .toggle-btn,
+.layer-actions .duplicate-btn,
+.layer-actions .solo-btn,
+.layer-actions .delete-btn,
+.layer-actions .random-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  line-height: 1;
+  place-items: center;
+  color: black;
+  padding: 0;
+}
+
+.layer-card.active .toggle-btn,
+.layer-card.active .duplicate-btn,
+.layer-card.active .delete-btn,
+.layer-card.active .random-btn {
+  color: white; /* visible on black background */
+}
+
+.layer-card .solo-btn {
+  color: #6d6d6d;
+}
+
+.layer-card.active .solo-btn:hover {
+  color: #fff;
+}
+
+.layer-card:not(.active) .solo-btn:hover {
+  color: #000;
+}
+
+/* Optional: ensure tooltip stays above hover background */
+.layer-card .solo-btn[data-tooltip]::after {
+}
+
+.layer-actions .delete-btn {
+  font-size: 12px;
+}
+
+.layer-actions .duplicate-btn {
+  font-size: 14px;
+}
+
+.layer-actions .solo-btn {
+  padding-bottom: 5px;
+}
+
+.layer-actions .toggle-btn {
+  padding-bottom: 4px;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  -webkit-appearance: none; /* remove default */
+  -moz-appearance: none;
+  appearance: none;
+  width: 12.5px;
+  height: 12.5px;
+  border: 1px solid #000; /* black outline */
+  background: #fff; /* white inside by default */
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background: #000; /* black fill when active */
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+.shape-row {
+  display: flex;
+  gap: 12.5px;
+  align-items: center;
+}
+
+.shape-btn {
+  width: 12.5px;
+  height: 12.5px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  opacity: 0.15; /* default inactive */
+}
+
+/* Circle: solid black */
+.shape-btn.circle {
+  border-radius: 50%;
+  background: black;
+}
+
+/* Square: solid black */
+.shape-btn.square {
+  background: black;
+}
+
+/* Triangle: draw with borders */
+.shape-btn.triangle {
+  width: 0;
+  height: 0;
+  border-left: 7.5px solid transparent;
+  border-right: 7.5px solid transparent;
+  border-bottom: 12.5px solid black;
+}
+
+/* --- Color Pickr Styling --- */
+
+.pcr-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--pcr-color, #000);
+}
+
+.pcr-button,
+div[role="button"] {
+  position: relative;
+  border-radius: 0;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.pcr-app {
+  background: #fff !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: "SpaceMono", monospace !important;
+  font-size: 12px !important;
+  color: #000 !important;
+}
+
+.pcr-app * {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.pcr-color-preview,
+.pcr-picker {
+  border: none !important;
+}
+
+.pcr-interaction input {
+  border: none !important;
+  font-family: "SpaceMono", monospace !important;
+  color: #000;
+  background: #fff;
+}
+
+.pcr-interaction input:focus {
+  outline: none;
+}
+
+.color-swatch {
+  width: 12.5px !important;
+  height: 12.5px !important;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.shape-btn.crosshair {
+  position: relative;
+}
+
+.shape-btn.crosshair::before,
+.shape-btn.crosshair::after {
+  content: "";
+  position: absolute;
+  background: black;
+}
+.shape-btn.crosshair::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 5px; /* double thickness */
+  transform: translateY(-50%);
+}
+.shape-btn.crosshair::after {
+  top: 0;
+  left: 50%;
+  width: 5px; /* double thickness */
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.random-btn {
+  padding-bottom: 3px !important;
+}
+
+/* --- Dual-label On / Off toggle --- */
+.ctrl-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent; /* ← CHANGED from #fff */
+  border: none; /* ← ADD this to remove any border */
+  padding: 0; /* ← ADD this to remove default padding */
+  cursor: pointer;
+  font: inherit;
+  color: #000;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.ctrl-toggle-btn .state {
+  color: #aaa; /* inactive gray */
+  transition: color 0.15s;
+}
+
+.ctrl-toggle-btn .state.active {
+  color: #000; /* active black */
+  font-weight: 700;
+}
+
+.ctrl-toggle-btn .slash {
+  color: #888;
+  font-weight: 400;
+}
+
+.ctrl-toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ctrl-toggle-btn .state {
+  cursor: pointer;
+}
+.ctrl-toggle-btn .slash {
+  cursor: default;
+}
+
+#desktop-warning {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 999999;
+  font-family: "SpaceMono", monospace;
+  color: #000;
+  padding: 20px;
+}
+
+#desktop-warning .message-box {
+  max-width: 400px;
+}
+
+#desktop-warning h2 {
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+#desktop-warning p {
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.btn[data-tooltip],
+.layer-actions button[data-tooltip] {
+  position: relative;
+}
+
+.btn[data-tooltip]::after,
+.layer-actions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  /* position: fixed; */
+  left: var(--tip-left, -9999px);
+  top: var(--tip-top, -9999px);
+  transform: translate(-50%, 6px);
+  background: #000;
+  color: #fff;
+  font-size: 9px;
+  padding: 3px 5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  letter-spacing: 0.3px;
+  font-family: "SpaceMono", monospace;
+  z-index: 999999; /* ← CHANGE from 10000 to 999999 */
+  isolation: isolate; /* ← ADD THIS LINE */
+}
+
+/* show on hover */
+.layer-actions button[data-tooltip]:hover::after,
+.btn[data-tooltip]:hover::after {
+  opacity: 1 !important;
+}
+
+.layer-actions button[data-tooltip]::after {
+  opacity: 0 !important;
+}
+
+.layer-actions button[data-tooltip]:hover::after {
+  opacity: 1 !important;
+}
+
+.pan-controls.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}

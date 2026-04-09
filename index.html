@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>3 Second Graphic</title>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
+    <!-- Pickr color picker (brutalist-ready) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr"></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Left Panel -->
+    <aside class="panel">
+      <section id="layerList" class="layer-list"></section>
+
+      <!-- <section id="controls"></section> -->
+
+      <footer class="panel-footer">
+        <button id="btnNewLayer" class="btn primary">+ New Layer</button>
+        <div class="spacer"></div>
+        <button id="btnExportSVG" class="btn">Export SVG</button>
+      </footer>
+    </aside>
+
+    <!-- Right Canvas (A-series ratio) -->
+    <main class="stage">
+      <!-- Canvas size controls (top-right) -->
+      <div class="canvas-size-controls">
+        <label>
+          Width:
+          <input
+            type="number"
+            id="canvasWidth"
+            min="10"
+            max="1250"
+            value="607"
+          />
+        </label>
+        <label>
+          Height:
+          <input
+            type="number"
+            id="canvasHeight"
+            min="10"
+            max="1250"
+            value="860"
+          />
+        </label>
+        <button id="btnApplySize" class="btn primary">Apply Size</button>
+      </div>
+
+      <!-- Canvas wrapper with zoom transform -->
+      <div class="canvas-container" id="canvasContainer">
+        <div class="a-frame" id="canvasFrame">
+          <div id="p5-holder"></div>
+        </div>
+      </div>
+
+      <div class="canvas-controls">
+        <!-- Pan controls (3x3 grid, cross formation) -->
+        <div class="pan-controls">
+          <div></div>
+          <!-- Empty: top-left -->
+          <button id="btnPanUp" class="pan-btn" title="Pan Up (↑)">▲</button>
+          <div></div>
+          <!-- Empty: top-right -->
+
+          <button id="btnPanLeft" class="pan-btn" title="Pan Left (←)">
+            ◄
+          </button>
+          <div></div>
+          <!-- Empty: center -->
+          <button id="btnPanRight" class="pan-btn" title="Pan Right (→)">
+            ►
+          </button>
+
+          <div></div>
+          <!-- Empty: bottom-left -->
+          <button id="btnPanDown" class="pan-btn" title="Pan Down (↓)">
+            ▼
+          </button>
+          <div></div>
+          <!-- Empty: bottom-right -->
+        </div>
+
+        <!-- Zoom controls -->
+        <div class="zoom-controls">
+          <button id="btnZoomOut" class="zoom-btn" title="Zoom Out (-)">
+            −
+          </button>
+          <span class="zoom-level" id="zoomLevel">100%</span>
+          <button id="btnZoomIn" class="zoom-btn" title="Zoom In (+)">+</button>
+          <button id="btnZoomReset" class="zoom-btn" title="Reset Zoom (0)">
+            ⊗
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="mobileViewport.js"></script>
+  </body>
+</html>
